@@ -90,17 +90,15 @@ public class LinkedList {
 
 		if(index == 0 || size == 0){
 			addLast(block);
-		}
-
-		if(index == size){
+		} else if(index == size){
 			addFirst(block);
+		} else {
+			Node after = getNode(index);
+			Node before = getNode(index - 1);
+			Node newBlock = new Node(block);
+			before.next = newBlock;
+			newBlock.next = after;
 		}
-
-		Node after = getNode(index);
-		Node before = getNode(index - 1);
-		Node newBlock = new Node(block);
-		before.next = newBlock;
-		newBlock.next = after;
 		size ++;
 	}
 
@@ -163,6 +161,7 @@ public class LinkedList {
 			throw new IllegalArgumentException(
 					"index must be between 0 and list's size");
 		}
+
 		Node result = first;
 		int counter = 0; 
 		while(counter != index){   	
@@ -210,7 +209,7 @@ public class LinkedList {
 			last = null;
 		} else if(index == 0){           			 //node is the first
 			first = first.next;
-		} else if (index == (size - 1)){					//node is the last
+		} else if (index == (size - 1)){			//node is the last
 			last = getNode(index -1);
 			last.next = null;
 		} else {                                     //node is somewhere in between 
@@ -227,8 +226,14 @@ public class LinkedList {
 	 * @throws IllegalArgumentException
 	 *         if index is negative or greater than or equal to size
 	 */
-	public void remove(int index) {
-		//// Write your code here
+	public void remove(int index) {	//// Write your code here
+		if (index < 0 || index >= size){
+			throw new IllegalArgumentException(
+					" NullPointerException!");
+		}
+	
+		Node removeNode = getNode(index);
+		remove(removeNode);
 	}
 
 	/**
@@ -238,8 +243,10 @@ public class LinkedList {
 	 * @throws IllegalArgumentException
 	 *         if the given memory block is not in this list
 	 */
-	public void remove(MemoryBlock block) {
-		//// Write your code here
+	public void remove(MemoryBlock block) {	//// Write your code here
+		int index = indexOf(block);
+		Node removeNode = getNode(index);
+		remove(removeNode);
 	}	
 
 	/**
@@ -252,8 +259,17 @@ public class LinkedList {
 	/**
 	 * A textual representation of this list, for debugging.
 	 */
-	public String toString() {
-		//// Replace the following statement with your code
-		return "";
+	public String toString() {	//// Replace the following statement with your code
+		if (first == null){
+			return "the list is empty";
+		} 
+		String result = "{";
+		Node corrent = first;
+		for(int i = 0; i < size - 1; i++) {
+			result += corrent.toString() + " ";
+			corrent = corrent.next;
+		}
+		result += corrent.toString() + " -> null}";
+		return result;
 	}
 }
