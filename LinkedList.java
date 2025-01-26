@@ -80,24 +80,22 @@ public class LinkedList {
 	 * @throws IllegalArgumentException
 	 *         if index is negative or greater than the list's size
 	 */
-	public void add(int index, MemoryBlock block) {	         //should be fine	
+	public void add(int index, MemoryBlock block) {
 		if (index < 0 || index > size) {
-			throw new IllegalArgumentException(
-					"index must be between 0 and size");
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-
-		if(index == 0 || size == 0){
-			addLast(block);
-		} else if(index == size){
+	
+		if (index == 0) {
 			addFirst(block);
+		} else if (index == size) {
+			addLast(block);
 		} else {
-			Node after = getNode(index);
 			Node before = getNode(index - 1);
-			Node newBlock = new Node(block);
-			before.next = newBlock;
-			newBlock.next = after;
+			Node newNode = new Node(block);
+			newNode.next = before.next;
+			before.next = newNode;
+			size++;
 		}
-		size ++;
 	}
 
 	/**
@@ -107,7 +105,7 @@ public class LinkedList {
 	 * @param block
 	 *        the given memory block
 	 */
-	public void addLast(MemoryBlock block) {          //sould be fine
+	public void addLast(MemoryBlock block) {         
 		if (block == null) {
 			return;
 		}
@@ -153,7 +151,7 @@ public class LinkedList {
 	 * @throws IllegalArgumentException
 	 *         if index is negative or greater than or equal to size
 	 */
-	public MemoryBlock getBlock(int index) {          //should be fine
+	public MemoryBlock getBlock(int index) {          
 		if (index < 0 || index >= size) {
 			throw new IllegalArgumentException("index must be between 0 and size");
 		}
@@ -172,7 +170,7 @@ public class LinkedList {
 	 *        the given memory block
 	 * @return the index of the block, or -1 if the block is not in this list
 	 */
-	public int indexOf(MemoryBlock block) { 	//// Replace the following statement with your code
+	public int indexOf(MemoryBlock block) { 	
 		int counter = 0;
 		Node correntNode = first;
 		while(correntNode != null){            		//check all the nodes in the list
@@ -191,7 +189,7 @@ public class LinkedList {
 	 * @param node
 	 *        the node that will be removed from this list
 	 */
-	public void remove(Node node) {	 //// Write your code here
+	public void remove(Node node) {	 
 		int index = indexOf(node.block);
 		if(index == -1){
 			throw new IllegalArgumentException(
@@ -220,7 +218,7 @@ public class LinkedList {
 	 * @throws IllegalArgumentException
 	 *         if index is negative or greater than or equal to size
 	 */
-	public void remove(int index) {	//// Write your code here
+	public void remove(int index) {	
 		if (index < 0 || index >= size){
 			throw new IllegalArgumentException(
 					" NullPointerException!");
@@ -237,7 +235,7 @@ public class LinkedList {
 	 * @throws IllegalArgumentException
 	 *         if the given memory block is not in this list
 	 */
-	public void remove(MemoryBlock block) {	//// Write your code here
+	public void remove(MemoryBlock block) {	
 		int index = indexOf(block);
 		Node removeNode = getNode(index);
 		remove(removeNode);
@@ -253,7 +251,7 @@ public class LinkedList {
 	/**
 	 * A textual representation of this list, for debugging.
 	 */
-	public String toString() {	//// Replace the following statement with your code
+	public String toString() {	
 		if (first == null){
 			return "the list is empty";
 		} 
