@@ -58,25 +58,28 @@ public class MemorySpace {
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
 	public int malloc(int length) {
+		if (length <= 0) {
+			return -1;
+		}
+	
 		for (int index = 0; index < freeList.getSize(); index++) {
 			MemoryBlock currentBlock = freeList.getNode(index).block;
-	
-			// Check if the current block has enough space
+			
 			if (currentBlock.length >= length) {
 				MemoryBlock newBlock = new MemoryBlock(currentBlock.baseAddress, length);
 				allocatedList.addLast(newBlock);
-
+	
 				if (currentBlock.length == length) {
 					freeList.remove(index);
 				} else {
 					currentBlock.baseAddress += length;
 					currentBlock.length -= length;
 				}
-
+	
 				return newBlock.baseAddress;
 			}
 		}
-		return -1;	//suitable block is not found
+		return -1;
 	}
 
 	/**
@@ -88,14 +91,23 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
+		if (allocatedList.getSize() == 0) {		// Check for empty allocated list
+			throw new IllegalArgumentException("No allocated blocks to free");
+		}
+	
+		// Find and remove the block with matching address
 		for (int index = 0; index < allocatedList.getSize(); index++) {
 			MemoryBlock currentBlock = allocatedList.getNode(index).block;
+			
 			if (currentBlock.baseAddress == address) {
 				allocatedList.remove(index);
 				freeList.addLast(currentBlock);
 				return;
 			}
 		}
+	
+		// If no block found with the given address
+		throw new IllegalArgumentException("Invalid memory address");
 	}
 	
 	/**
@@ -112,18 +124,38 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		for (int i = 0; i < freeList.getSize() - 1; i++) {
-			MemoryBlock currentBlock = freeList.getNode(i).block;
-			int baseSearch = currentBlock.baseAddress + currentBlock.length;
-			
-			for (int j = i + 1; j < freeList.getSize(); j++) {
-				MemoryBlock nextBlock = freeList.getNode(j).block;
-				if (baseSearch == nextBlock.baseAddress) {
-					currentBlock.length += nextBlock.length;
-					freeList.remove(j);
-					defrag();
-					return;
+		if (freeList.getSize() <= 1) {	// Empty free list || single block
+			return;
+		}
+	
+		for (int i = 0; i < freeList.getSize() - 1; i++) {   // Sort free list by base address
+			for (int j = 0; j < freeList.getSize() - i - 1; j++) {
+				MemoryBlock current = freeList.getNode(j).block;
+				MemoryBlock next = freeList.getNode(j + 1).block;
+				
+				if (current.baseAddress > next.baseAddress) {
+					// Swap base address and length
+					int tempAddress = current.baseAddress;
+					int tempLength = current.length;
+					current.baseAddress = next.baseAddress;
+					current.length = next.length;
+					next.baseAddress = tempAddress;
+					next.length = tempLength;
 				}
+			}
+		}
+	
+		// Merge adjacent blocks
+		int index = 0;
+		while (index < freeList.getSize() - 1) {
+			MemoryBlock current = freeList.getNode(index).block;
+			MemoryBlock next = freeList.getNode(index + 1).block;
+			
+			if (current.baseAddress + current.length == next.baseAddress) {
+				current.length += next.length;
+				freeList.remove(index + 1);
+			} else {
+				index++;
 			}
 		}
 	}
