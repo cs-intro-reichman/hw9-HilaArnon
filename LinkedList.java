@@ -49,18 +49,16 @@ public class LinkedList {
 	 *         if index is negative or greater than the list's size
 	 * @return the node at the given index
 	 */		
-	public Node getNode(int index) { // Replace the following statement with your code
+	public Node getNode(int index) {
 		if (index < 0 || index > size) {
-			throw new IllegalArgumentException(
-					"index must be between 0 and size");
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-		Node result = first;
-		int counter = 0;
-		while(index != counter){
-			result = result.next;
-			counter ++;
+		
+		Node current = first;
+		for (int i = 0; i < index; i++) {
+			current = current.next;
 		}
-		return result;   //index == counter and result is the node at the given index
+		return current;
 	}
 	
 	/**
@@ -82,7 +80,7 @@ public class LinkedList {
 	 * @throws IllegalArgumentException
 	 *         if index is negative or greater than the list's size
 	 */
-	public void add(int index, MemoryBlock block) {		//// Write your code here
+	public void add(int index, MemoryBlock block) {	         //should be fine	
 		if (index < 0 || index > size) {
 			throw new IllegalArgumentException(
 					"index must be between 0 and size");
@@ -109,21 +107,20 @@ public class LinkedList {
 	 * @param block
 	 *        the given memory block
 	 */
-	public void addLast(MemoryBlock block) { //// Write your code here
-		if(block == null){			//null block
+	public void addLast(MemoryBlock block) {          //sould be fine
+		if (block == null) {
 			return;
 		}
-
-		Node newBlock = new Node(block);
-		if(last == null){			//empty list
-			first = newBlock;
-			last = newBlock;
-			size ++;
-			return;
+	
+		Node newNode = new Node(block);
+		if (last == null) {
+			first = newNode;
+			last = newNode;
+		} else {
+			last.next = newNode;
+			last = newNode;
 		}
-
-		last.next = newBlock;  		//add to the end
-		size ++;
+		size++;
 	}
 	
 	/**
@@ -133,7 +130,7 @@ public class LinkedList {
 	 * @param block
 	 *        the given memory block
 	 */
-	public void addFirst(MemoryBlock block) { //// Write your code here
+	public void addFirst(MemoryBlock block) { 
 		if(block == null){			//null block
 			return;
 		}
@@ -156,20 +153,17 @@ public class LinkedList {
 	 * @throws IllegalArgumentException
 	 *         if index is negative or greater than or equal to size
 	 */
-	public MemoryBlock getBlock(int index) { //// Replace the following statement with your code
-		if (index < 0 || index > size || size == 0){
-			throw new IllegalArgumentException(
-					"index must be between 0 and list's size");
+	public MemoryBlock getBlock(int index) {          //should be fine
+		if (index < 0 || index >= size) {
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-
-		Node result = first;
-		int counter = 0; 
-		while(counter != index){   	
-			result = result.next;
-			counter ++;
-		} 
-		return result.block;		//counter == index and result is the node at the given index
-	}	
+	
+		Node current = first;
+		for (int i = 0; i < index; i++) {
+			current = current.next;
+		}
+		return current.block;
+	}
 
 	/**
 	 * Gets the index of the node pointing to the given memory block.

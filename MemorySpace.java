@@ -48,7 +48,7 @@ public class MemorySpace {
 	 * are set to 250 and 17, respectively, and the base address and length
 	 * of the found free block are set to 267 and 3, respectively.
 	 * 
-	 * (4) The new memory block is returned.
+	 * (4) The new memory block is returned.               HOW?????
 	 * 
 	 * If the length of the found block is exactly the same as the requested length, 
 	 * then the found block is removed from the freeList and appended to the allocatedList.
@@ -57,9 +57,25 @@ public class MemorySpace {
 	 *        the length (in words) of the memory block that has to be allocated
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
-	public int malloc(int length) {		
-		//// Replace the following statement with your code
-		return -1;
+	public int malloc(int length) {		//// Replace the following statement with your code	
+		int index = 0;
+		while (index <= freeList.getSize()) {				//scanning the freeList
+			Node currentNode = freeList.getNode(index);
+			MemoryBlock correntBlock = new MemoryBlock(currentNode.block.baseAddress, currentNode.block.length);
+			if(correntBlock.length >= length){          	  //found a good block
+				MemoryBlock newBlock = new MemoryBlock(correntBlock.baseAddress, length);
+				allocatedList.addLast(newBlock);
+				if(correntBlock.length == length){
+					freeList.remove(index);
+				} else {
+					currentNode.block.baseAddress += length;
+					currentNode.block.length -= length;
+				}
+				return newBlock.baseAddress;
+			}
+			index ++;
+		}
+		return -1;		// unable to allocate
 	}
 
 	/**
@@ -70,8 +86,18 @@ public class MemorySpace {
 	 * @param baseAddress
 	 *            the starting address of the block to freeList
 	 */
-	public void free(int address) {
-		//// Write your code here
+	public void free(int address) { 	//// Write your code here
+		int index = 0;
+		while (index < allocatedList.getSize()){
+			Node currentNode = allocatedList.getNode(index);
+			MemoryBlock correntBlock = new MemoryBlock(currentNode.block.baseAddress, currentNode.block.length);
+			if(currentNode.block.baseAddress == address){
+				allocatedList.remove(index);
+				freeList.addLast(correntBlock);
+				return;
+			}
+			index ++;
+		}
 	}
 	
 	/**
