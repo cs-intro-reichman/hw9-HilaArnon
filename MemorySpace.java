@@ -58,26 +58,43 @@ public class MemorySpace {
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
 	public int malloc(int length) {
-		if (length <= 0) {
+		if (length <= 0) {    // not a valid length
 			return -1;
 		}
 	
-		for (int i = 0; i < freeList.getSize(); i++) {
-			MemoryBlock currentBlock = freeList.getNode(i).block;
-			
+		// Sort free list by base address to ensure consistent allocation
+		for (int i = 0; i < freeList.getSize() - 1; i++) {
+			for (int j = 0; j < freeList.getSize() - i - 1; j++) {
+				MemoryBlock current = freeList.getBlock(j);
+				MemoryBlock next = freeList.getBlock(j + 1);
+				if (current.baseAddress > next.baseAddress) {
+					freeList.remove(j);
+					freeList.remove(j);
+					freeList.add(j, next);
+					freeList.add(j + 1, current);
+				}
+			}
+		}
+	
+		ListIterator iterator = freeList.iterator();
+		int index = 0;
+		
+		while (iterator.hasNext()) {
+			MemoryBlock currentBlock = iterator.next();
 			if (currentBlock.length >= length) {
 				int baseAddress = currentBlock.baseAddress;
 				MemoryBlock newBlock = new MemoryBlock(baseAddress, length);
 				allocatedList.addLast(newBlock);
 	
 				if (currentBlock.length == length) {
-					freeList.remove(i);
+					freeList.remove(index);
 				} else {
 					currentBlock.baseAddress += length;
 					currentBlock.length -= length;
 				}
 				return baseAddress;
 			}
+			index++;
 		}
 		return -1;
 	}
@@ -95,16 +112,34 @@ public class MemorySpace {
 			throw new IllegalArgumentException("No allocated blocks to free");
 		}
 	
+		// Find the block to free
+		MemoryBlock blockToFree = null;
+		int indexToRemove = -1;
 		for (int i = 0; i < allocatedList.getSize(); i++) {
-			Node currentNode = allocatedList.getNode(i);
-			if (currentNode.block.baseAddress == address) {
-				MemoryBlock freeBlock = currentNode.block;
-				allocatedList.remove(i);
-				freeList.addLast(freeBlock);
-				return;
+			if (allocatedList.getBlock(i).baseAddress == address) {
+				blockToFree = allocatedList.getBlock(i);
+				indexToRemove = i;
+				break;
 			}
 		}
+	
+		if (blockToFree == null) {
+			throw new IllegalArgumentException("Address not found in allocated blocks");
+		}
+
+		allocatedList.remove(indexToRemove);	// Remove from allocated list
+	
+		// Add to free list in order
+		int insertIndex = 0;
+		for (int i = 0; i < freeList.getSize(); i++) {
+			if (freeList.getBlock(i).baseAddress > blockToFree.baseAddress) {
+				break;
+			}
+			insertIndex++;
+		}
+		freeList.add(insertIndex, blockToFree);
 	}
+	
 	
 	/**
 	 * A textual representation of the free list and the allocated list of this memory space, 
@@ -124,12 +159,27 @@ public class MemorySpace {
 			return;
 		}
 	
+		// Sort free list by base address
+		for (int i = 0; i < freeList.getSize() - 1; i++) {
+			for (int j = 0; j < freeList.getSize() - i - 1; j++) {
+				MemoryBlock current = freeList.getBlock(j);
+				MemoryBlock next = freeList.getBlock(j + 1);
+				if (current.baseAddress > next.baseAddress) {
+					freeList.remove(j);
+					freeList.remove(j);
+					freeList.add(j, next);
+					freeList.add(j + 1, current);
+				}
+			}
+		}
+	
+		// Merge adjacent blocks
 		boolean merged;
 		do {
 			merged = false;
 			for (int i = 0; i < freeList.getSize() - 1; i++) {
-				MemoryBlock current = freeList.getNode(i).block;
-				MemoryBlock next = freeList.getNode(i + 1).block;
+				MemoryBlock current = freeList.getBlock(i);
+				MemoryBlock next = freeList.getBlock(i + 1);
 				
 				if (current.baseAddress + current.length == next.baseAddress) {
 					current.length += next.length;
