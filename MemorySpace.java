@@ -108,44 +108,19 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		if (allocatedList.getSize() == 0) {		// Empty allocated list
+		if (allocatedList.getSize() == 0) { 
 			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-	
-		// Find the block to free
-		MemoryBlock blockToFree = null;
-		int indexToRemove = -1;
-		for (int i = 0; i < allocatedList.getSize(); i++) {
-			if (allocatedList.getBlock(i).baseAddress == address) {
-				blockToFree = allocatedList.getBlock(i);
-				indexToRemove = i;
-				break;
-			}
-		}
-	
-		if (blockToFree == null) {
-			return;
-		}
-	
-		for (int i = 0; i < freeList.getSize(); i++) {
-			if (freeList.getBlock(i).baseAddress == address) {
+
+		ListIterator iterator = allocatedList.iterator();
+		while (iterator.hasNext()) {
+			MemoryBlock thisMemoryBlock = iterator.next();
+			if (address == thisMemoryBlock.baseAddress){
+				allocatedList.remove(thisMemoryBlock);
+				freeList.addLast(thisMemoryBlock);
 				return;
 			}
 		}
-	
-		// Remove from allocated list
-		allocatedList.remove(indexToRemove);
-	
-		// Add to free list in sorted order
-		int insertIndex = 0;
-		for (int i = 0; i < freeList.getSize(); i++) {
-			if (freeList.getBlock(i).baseAddress > blockToFree.baseAddress) {
-				break;
-			}
-			insertIndex++;
-		}
-		freeList.add(insertIndex, blockToFree);
-		defrag();
 	}
 	
 	
