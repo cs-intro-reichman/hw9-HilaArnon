@@ -108,8 +108,8 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		if (allocatedList.getSize() == 0) {
-			throw new IllegalArgumentException("No allocated blocks to free");
+		if (allocatedList.getSize() == 0) {		// Empty allocated list
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
 	
 		// Find the block to free
@@ -124,12 +124,19 @@ public class MemorySpace {
 		}
 	
 		if (blockToFree == null) {
-			throw new IllegalArgumentException("Address not found in allocated blocks");
+			return;
 		}
-
-		allocatedList.remove(indexToRemove);	// Remove from allocated list
 	
-		// Add to free list in order
+		for (int i = 0; i < freeList.getSize(); i++) {
+			if (freeList.getBlock(i).baseAddress == address) {
+				return;
+			}
+		}
+	
+		// Remove from allocated list
+		allocatedList.remove(indexToRemove);
+	
+		// Add to free list in sorted order
 		int insertIndex = 0;
 		for (int i = 0; i < freeList.getSize(); i++) {
 			if (freeList.getBlock(i).baseAddress > blockToFree.baseAddress) {
@@ -138,6 +145,7 @@ public class MemorySpace {
 			insertIndex++;
 		}
 		freeList.add(insertIndex, blockToFree);
+		defrag();
 	}
 	
 	
