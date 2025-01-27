@@ -57,29 +57,30 @@ public class MemorySpace {
 	 *        the length (in words) of the memory block that has to be allocated
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
-	public int malloc(int length) {
-		if (length <= 0) {
-			return -1;
-		}
-	
-		for (int index = 0; index < freeList.getSize(); index++) {
-			MemoryBlock currentBlock = freeList.getNode(index).block;
-			
-			if (currentBlock.length >= length) {
-				MemoryBlock newBlock = new MemoryBlock(currentBlock.baseAddress, length);
-				allocatedList.addLast(newBlock);
-	
-				if (currentBlock.length == length) {
-					freeList.remove(index);
-				} else {
-					currentBlock.baseAddress += length;
-					currentBlock.length -= length;
-				}
-	
-				return newBlock.baseAddress;
+	public int malloc(int length) {		
+		MemoryBlock thisBlock = null;
+		ListIterator iterator = freeList.iterator();
+		while (iterator.hasNext()) {
+			MemoryBlock correntIterator = iterator.next();
+			if (correntIterator.length >= length){
+				thisBlock = correntIterator;
+				break;
 			}
 		}
-		return -1;
+		
+		if (thisBlock == null){   // if no block was found
+			return -1;
+		}
+
+		MemoryBlock pushBlock = new MemoryBlock(thisBlock.baseAddress, length);  
+		allocatedList.addLast(pushBlock);
+		if (length == thisBlock.length){  		// block is exactly the same size
+			freeList.remove(pushBlock);
+			return thisBlock.baseAddress;
+		}
+		thisBlock.baseAddress += length;
+		thisBlock.length -= length;
+		return pushBlock.baseAddress;
 	}
 
 	/**
@@ -91,23 +92,19 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		if (allocatedList.getSize() == 0) {		// Check for empty allocated list
-			throw new IllegalArgumentException("No allocated blocks to free");
+		if (allocatedList.getSize() == 0) { 
+			throw new IllegalArgumentException("index must be between 0 and size");
 		}
-	
-		// Find and remove the block with matching address
-		for (int index = 0; index < allocatedList.getSize(); index++) {
-			MemoryBlock currentBlock = allocatedList.getNode(index).block;
-			
-			if (currentBlock.baseAddress == address) {
-				allocatedList.remove(index);
-				freeList.addLast(currentBlock);
+
+		ListIterator iterator = allocatedList.iterator();
+		while (iterator.hasNext()) {
+			MemoryBlock thisMemoryBlock = iterator.next();
+			if (address == thisMemoryBlock.baseAddress){
+				allocatedList.remove(thisMemoryBlock);
+				freeList.addLast(thisMemoryBlock);
 				return;
 			}
 		}
-	
-		// If no block found with the given address
-		throw new IllegalArgumentException("Invalid memory address");
 	}
 	
 	/**
@@ -124,38 +121,18 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		if (freeList.getSize() <= 1) {	// Empty free list || single block
-			return;
-		}
-	
-		for (int i = 0; i < freeList.getSize() - 1; i++) {   // Sort free list by base address
-			for (int j = 0; j < freeList.getSize() - i - 1; j++) {
-				MemoryBlock current = freeList.getNode(j).block;
-				MemoryBlock next = freeList.getNode(j + 1).block;
-				
-				if (current.baseAddress > next.baseAddress) {
-					// Swap base address and length
-					int tempAddress = current.baseAddress;
-					int tempLength = current.length;
-					current.baseAddress = next.baseAddress;
-					current.length = next.length;
-					next.baseAddress = tempAddress;
-					next.length = tempLength;
+		ListIterator mainIter = freeList.iterator();
+		ListIterator anotherIter = freeList.iterator();
+		while (mainIter.hasNext()) {
+			MemoryBlock thisMemoryBlock = mainIter.next();
+			int initealSearch = thisMemoryBlock.baseAddress + thisMemoryBlock.length;
+			while (anotherIter.hasNext()){
+				MemoryBlock secondMemoryBlock = anotherIter.next();
+				if (initealSearch == secondMemoryBlock.baseAddress) {
+					thisMemoryBlock.length += secondMemoryBlock.length;
+					freeList.remove(secondMemoryBlock);
+					defrag();
 				}
-			}
-		}
-	
-		// Merge adjacent blocks
-		int index = 0;
-		while (index < freeList.getSize() - 1) {
-			MemoryBlock current = freeList.getNode(index).block;
-			MemoryBlock next = freeList.getNode(index + 1).block;
-			
-			if (current.baseAddress + current.length == next.baseAddress) {
-				current.length += next.length;
-				freeList.remove(index + 1);
-			} else {
-				index++;
 			}
 		}
 	}
