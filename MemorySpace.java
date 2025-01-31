@@ -112,24 +112,16 @@ public class MemorySpace {
 			throw new IllegalArgumentException("index must be between 0 and size");
 		}
 	
-		// Find block to free
-		MemoryBlock blockToFree = null;
-		int indexToRemove = -1;
-		
-		for (int i = 0; i < allocatedList.getSize(); i++) {
-			if (allocatedList.getBlock(i).baseAddress == address) {
-				blockToFree = allocatedList.getBlock(i);
-				indexToRemove = i;
-				break;
+		ListIterator iterator = allocatedList.iterator();
+		while (iterator.hasNext()) {
+			MemoryBlock thisMemoryBlock = iterator.next();
+			if (address == thisMemoryBlock.baseAddress) {
+				freeList.addLast(thisMemoryBlock);
+				return;
 			}
 		}
-		
-		if (blockToFree != null) {
-			allocatedList.remove(indexToRemove);
-			freeList.addLast(blockToFree);
-			defrag();
-		}
 	}
+	
 	
 	/**
 	 * A textual representation of the free list and the allocated list of this memory space, 
